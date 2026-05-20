@@ -1,15 +1,7 @@
-import { createContext, useContext, useState } from "react";
-import { useLoginMutation } from "./mutations/use-login";
-import { useToast } from "./use-toast";
-
-export type AuthContextType = {
-	login: (email: string, password: string) => Promise<void>;
-	logout: () => Promise<void>;
-	token: string | undefined;
-	isPending: boolean;
-};
-
-const AuthContext = createContext<AuthContextType>({} as AuthContextType);
+import { useState } from "react";
+import { useLoginMutation } from "@/hooks/mutations/use-login";
+import { AuthContext } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
 	const [token, setToken] = useState(() => {
@@ -31,6 +23,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 	async function login(email: string, password: string) {
 		const token = await loginMutation.mutateAsync({ email, password });
+
+		console.log({
+			token,
+		});
+
 		localStorage.setItem("@ousu-airdrop-token", token);
 		setToken(token);
 	}
@@ -47,8 +44,4 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 			{children}
 		</AuthContext.Provider>
 	);
-}
-
-export function useAuth() {
-	return useContext(AuthContext);
 }
