@@ -18,6 +18,9 @@ import { useState } from "react";
 import AddDeviceDialog from "@/components/AddDeviceDialog";
 import ScanQrDialog from "@/components/ScanQrDialog";
 import { Card } from "@/components/ui/card";
+import { useFetchDevices } from "@/hooks/queries/use-fetch-devices";
+import { useFetchFiles } from "@/hooks/queries/use-fetch-files";
+import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 
 type Device = {
@@ -37,14 +40,6 @@ type HistoryItem = {
 	type: "img" | "vid" | "doc";
 	isNew?: boolean;
 };
-
-const devices: Device[] = [
-	{ id: "me", name: "Você", kind: "phone", isMe: true },
-	{ id: "1", name: "iPhone de Ana", kind: "phone" },
-	{ id: "2", name: "MacBook Pro", kind: "laptop" },
-	{ id: "3", name: "iPad", kind: "tablet" },
-	{ id: "4", name: "Galaxy de João", kind: "phone" },
-];
 
 const initialHistory: HistoryItem[] = [
 	{
@@ -108,10 +103,17 @@ const fileIcon = (t: HistoryItem["type"]) =>
 	t === "img" ? ImageIcon : t === "vid" ? Film : FileText;
 
 export function Home() {
+	const { logout, token } = useAuth();
 	const [history] = useState<HistoryItem[]>(initialHistory);
 	const [addOpen, setAddOpen] = useState(false);
 	const [scanOpen, setScanOpen] = useState(false);
 	const [roomCode, setRoomCode] = useState("BEAM-7K3X");
+
+	const { data: devices } = useFetchDevices();
+
+	const { data: files } = useFetchFiles();
+
+	console.log(token);
 
 	return (
 		<div className="relative mx-auto min-h-screen w-full max-w-md px-5 pb-10 pt-6 lg:max-w-7xl lg:px-10 lg:pt-10">
@@ -136,7 +138,10 @@ export function Home() {
 				<div className="flex items-center gap-3">
 					<button
 						type="button"
-						onClick={() => setAddOpen(true)}
+						onClick={() => {
+							logout();
+							console.log("cli");
+						}}
 						className="hidden h-10 items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 text-sm font-medium text-primary transition-smooth hover:bg-primary/20 lg:flex"
 					>
 						<UserPlus className="h-4 w-4" />
@@ -186,7 +191,7 @@ export function Home() {
 								>
 									<Users className="h-3.5 w-3.5 text-primary" />
 									<span className="text-[11px] font-semibold text-primary">
-										{devices.length}
+										{devices?.length}
 									</span>
 								</button>
 							</div>
@@ -202,26 +207,23 @@ export function Home() {
 									/>
 								</div>
 
-								{devices
-									.filter((d) => !d.isMe)
-									.slice(0, 4)
-									.map((d, i, arr) => {
-										const Icon = deviceIcon(d.kind);
-										const angle = (i / arr.length) * Math.PI * 2 - Math.PI / 2;
-										const r = 130;
-										const x = Math.cos(angle) * r;
-										const y = Math.sin(angle) * r;
-										return (
-											<div
-												key={d.id}
-												className="absolute hidden h-12 w-12 items-center justify-center rounded-full border border-primary/30 bg-card/80 backdrop-blur transition-smooth hover:border-primary lg:flex"
-												style={{ transform: `translate(${x}px, ${y}px)` }}
-												title={d.name}
-											>
-												<Icon className="h-5 w-5 text-primary" />
-											</div>
-										);
-									})}
+								{devices?.slice(0, 4).map((d, i, arr) => {
+									const Icon = deviceIcon("desktop");
+									const angle = (i / arr.length) * Math.PI * 2 - Math.PI / 2;
+									const r = 130;
+									const x = Math.cos(angle) * r;
+									const y = Math.sin(angle) * r;
+									return (
+										<div
+											key={d.id}
+											className="absolute hidden h-12 w-12 items-center justify-center rounded-full border border-primary/30 bg-card/80 backdrop-blur transition-smooth hover:border-primary lg:flex"
+											style={{ transform: `translate(${x}px, ${y}px)` }}
+											title={d.name}
+										>
+											<Icon className="h-5 w-5 text-primary" />
+										</div>
+									);
+								})}
 							</div>
 
 							{/* Actions */}
@@ -243,7 +245,7 @@ export function Home() {
 								</button>
 								<button
 									type="button"
-									onClick={() => setAddOpen(true)}
+									onClick={() => logout()}
 									className="flex h-12 w-12 items-center justify-center rounded-xl border border-primary/30 bg-primary/10 text-primary transition-smooth hover:bg-primary/20 lg:h-14 lg:w-14"
 									aria-label="Adicionar dispositivo"
 								>
@@ -259,8 +261,9 @@ export function Home() {
 							Dispositivos na sala
 						</h3>
 						<div className="space-y-2">
-							{devices.map((d) => {
-								const Icon = deviceIcon(d.kind);
+							{devices?.map((d) => {
+								const Icon = deviceIcon("desktop");
+
 								return (
 									<Card
 										key={d.id}
@@ -310,7 +313,7 @@ export function Home() {
 
 					<div className="space-y-2">
 						{history.map((it) => {
-							const Icon = fileIcon(it.type);
+							const Icon = fileIcon("doc");
 							const isOut = it.dir === "out";
 							return (
 								<Card

@@ -1,4 +1,5 @@
 import axios from "axios";
+import { storage } from "./storage";
 
 export const osuBackend = axios.create({
 	baseURL: import.meta.env.VITE_API_URL,
@@ -6,9 +7,7 @@ export const osuBackend = axios.create({
 
 osuBackend.interceptors.request.use(
 	(config) => {
-		config.headers["Authorization"] = `Bearer ${localStorage.getItem(
-			"@ousu-airdrop-token",
-		)}`;
+		config.headers["Authorization"] = `Bearer ${storage.get("token")}`;
 
 		return config;
 	},

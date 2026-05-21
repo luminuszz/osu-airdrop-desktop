@@ -1,12 +1,11 @@
-import { useState } from "react";
 import { useLoginMutation } from "@/hooks/mutations/use-login";
 import { AuthContext } from "@/hooks/use-auth";
+import { useStorageValue } from "@/hooks/use-storaged";
 import { useToast } from "@/hooks/use-toast";
+import { storage } from "@/lib/storage";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-	const [token, setToken] = useState(() => {
-		return localStorage.getItem("@ousu-airdrop-token") ?? "";
-	});
+	const [token, setToken] = useStorageValue("token", "");
 
 	const { toast } = useToast();
 
@@ -17,18 +16,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	});
 
 	async function logout() {
-		localStorage.removeItem("@ousu-airdrop-token");
-		setToken("");
+		storage.remove("token");
+		storage.remove("deviceId");
+		storage.remove("deviceName");
+		console.log("logout finoshed");
 	}
 
 	async function login(email: string, password: string) {
 		const token = await loginMutation.mutateAsync({ email, password });
-
-		console.log({
-			token,
-		});
-
-		localStorage.setItem("@ousu-airdrop-token", token);
 		setToken(token);
 	}
 
