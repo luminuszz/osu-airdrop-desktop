@@ -12,7 +12,7 @@ export interface Device {
 	name: string;
 	type: DeviceType | string;
 	isOnline: boolean;
-	lastActiveAt: string | Date; // Vem como string do JSON, mas o Prisma trata como Date
+	lastActiveAt: string | Date;
 	createdAt: string | Date;
 	userId: string;
 }

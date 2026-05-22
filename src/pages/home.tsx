@@ -1,9 +1,4 @@
 import {
-	ArrowDownLeft,
-	ArrowUpRight,
-	FileText,
-	Film,
-	Image as ImageIcon,
 	Laptop,
 	Monitor,
 	ScanLine,
@@ -15,13 +10,15 @@ import {
 	Zap,
 } from "lucide-react";
 import { useState } from "react";
+import Dropzone, { useDropzone } from "react-dropzone";
 import AddDeviceDialog from "@/components/AddDeviceDialog";
+import { FileList } from "@/components/FileList";
 import ScanQrDialog from "@/components/ScanQrDialog";
 import { Card } from "@/components/ui/card";
 import { useFetchDevices } from "@/hooks/queries/use-fetch-devices";
 import { useFetchFiles } from "@/hooks/queries/use-fetch-files";
+import { useFetchUser } from "@/hooks/queries/use-fetch-user";
 import { useAuth } from "@/hooks/use-auth";
-import { cn } from "@/lib/utils";
 
 type Device = {
 	id: string;
@@ -29,66 +26,6 @@ type Device = {
 	kind: "phone" | "laptop" | "tablet" | "desktop";
 	isMe?: boolean;
 };
-
-type HistoryItem = {
-	id: string;
-	dir: "in" | "out";
-	name: string;
-	size: string;
-	who: string;
-	time: string;
-	type: "img" | "vid" | "doc";
-	isNew?: boolean;
-};
-
-const initialHistory: HistoryItem[] = [
-	{
-		id: "h1",
-		dir: "in",
-		name: "foto_aniversario.jpg",
-		size: "4.8 MB",
-		who: "iPhone de Ana",
-		time: "Agora",
-		type: "img",
-		isNew: true,
-	},
-	{
-		id: "h2",
-		dir: "out",
-		name: "contrato_2025.pdf",
-		size: "1.2 MB",
-		who: "Você",
-		time: "Hoje, 14:32",
-		type: "doc",
-	},
-	{
-		id: "h3",
-		dir: "in",
-		name: "demo.mp4",
-		size: "128 MB",
-		who: "Galaxy de João",
-		time: "Hoje, 11:08",
-		type: "vid",
-	},
-	{
-		id: "h4",
-		dir: "in",
-		name: "planilha.xlsx",
-		size: "320 KB",
-		who: "iPad",
-		time: "Ontem",
-		type: "doc",
-	},
-	{
-		id: "h5",
-		dir: "in",
-		name: "logo_final.png",
-		size: "2.1 MB",
-		who: "MacBook Pro",
-		time: "12 abr",
-		type: "img",
-	},
-];
 
 const deviceIcon = (k: Device["kind"]) =>
 	k === "phone"
@@ -99,39 +36,57 @@ const deviceIcon = (k: Device["kind"]) =>
 				? Tablet
 				: Monitor;
 
-const fileIcon = (t: HistoryItem["type"]) =>
-	t === "img" ? ImageIcon : t === "vid" ? Film : FileText;
-
 export function Home() {
-	const { logout, token } = useAuth();
-	const [history] = useState<HistoryItem[]>(initialHistory);
+	const { logout } = useAuth();
+
 	const [addOpen, setAddOpen] = useState(false);
 	const [scanOpen, setScanOpen] = useState(false);
-	const [roomCode, setRoomCode] = useState("BEAM-7K3X");
-
-	const { data: devices } = useFetchDevices();
 
 	const { data: files } = useFetchFiles();
 
-	console.log(token);
+	const { data: devices } = useFetchDevices();
+
+	const { data: user } = useFetchUser();
+
+	async function startUpload(acceptedFiles: File[]) {
+		console.log(acceptedFiles);
+	}
+
+	const { getRootProps, getInputProps, open, isDragActive } = useDropzone({
+		noKeyboard: true,
+		noClick: true,
+		multiple: false,
+		onDrop: startUpload,
+		onError: (e) => {
+			console.log(e);
+		},
+		onDropRejected: (e) => {
+			console.log(e);
+		},
+		onDropAccepted: (e) => {
+			console.log({ acceped: true, e });
+		},
+		onDragEnter: (e) => {
+			console.log({ e, enter: true });
+		},
+	});
 
 	return (
 		<div className="relative mx-auto min-h-screen w-full max-w-md px-5 pb-10 pt-6 lg:max-w-7xl lg:px-10 lg:pt-10">
-			{/* Header */}
 			<header className="mb-6 flex items-center justify-between lg:mb-10">
 				<div className="flex items-center gap-2 lg:gap-3">
-					<div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-primary shadow-glow lg:h-12 lg:w-12">
+					<div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-green-950 shadow-glow lg:h-12 lg:w-12">
 						<Zap
-							className="h-5 w-5 text-primary-foreground lg:h-6 lg:w-6"
+							className="h-5 w-5 text-emerald-600 lg:h-6 lg:w-6"
 							fill="currentColor"
 						/>
 					</div>
-					<div>
+					<div className="flex flex-col items-start">
 						<h1 className="text-lg font-bold leading-tight lg:text-2xl">
-							Beam
+							{user?.name}
 						</h1>
 						<p className="text-[11px] text-muted-foreground lg:text-xs">
-							Sala · {roomCode}
+							Sala · {user?.id}
 						</p>
 					</div>
 				</div>
@@ -157,10 +112,10 @@ export function Home() {
 					</button>
 					<div className="flex items-center gap-1.5 rounded-full border border-success/30 bg-success/10 px-3 py-1.5">
 						<span className="relative flex h-2 w-2">
-							<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75" />
-							<span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
+							<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-600 opacity-75" />
+							<span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-600" />
 						</span>
-						<span className="text-[11px] font-medium text-success">
+						<span className="text-[11px] font-medium text-success mt-1">
 							Conectado
 						</span>
 					</div>
@@ -180,7 +135,9 @@ export function Home() {
 										Sala AirDrop
 									</h2>
 									<p className="text-xs text-muted-foreground lg:text-sm">
-										Envie um arquivo e todos da sala recebem
+										{isDragActive
+											? "Enviando arquivo..."
+											: "Envie um arquivo e todos da sala recebem"}
 									</p>
 								</div>
 								<button
@@ -196,7 +153,10 @@ export function Home() {
 								</button>
 							</div>
 
-							<div className="relative mx-auto mb-5 flex h-44 w-44 items-center justify-center lg:mb-8 lg:h-72 lg:w-72">
+							<div
+								className="relative mx-auto mb-5 flex h-44 w-44 items-center justify-center lg:mb-8 lg:h-72 lg:w-72"
+								{...getRootProps()}
+							>
 								<span className="absolute h-full w-full  rounded-full bg-primary/10" />
 								<span className="absolute h-2/3 w-2/3  rounded-full bg-primary/15 " />
 								<span className="absolute h-1/3 w-1/3 rounded-full bg-primary/20" />
@@ -225,10 +185,11 @@ export function Home() {
 									);
 								})}
 							</div>
+							<input {...getInputProps()} />
 
-							{/* Actions */}
 							<div className="grid grid-cols-[1fr_auto_auto] gap-2 lg:gap-3">
 								<button
+									onClick={open}
 									type="button"
 									className="flex h-12 items-center justify-center gap-2 rounded-xl bg-gradient-primary text-sm font-semibold text-primary-foreground shadow-glow transition-smooth hover:opacity-90 lg:h-14 lg:text-base"
 								>
@@ -255,7 +216,6 @@ export function Home() {
 						</div>
 					</Card>
 
-					{/* Devices list — desktop only */}
 					<div className="mt-6 hidden lg:block">
 						<h3 className="mb-3 px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
 							Dispositivos na sala
@@ -290,76 +250,31 @@ export function Home() {
 					</div>
 				</section>
 
-				<AddDeviceDialog
-					open={addOpen}
-					onOpenChange={setAddOpen}
-					roomCode={roomCode}
-				/>
-				<ScanQrDialog
-					open={scanOpen}
-					onOpenChange={setScanOpen}
-					onJoin={setRoomCode}
-				/>
-
+				{user && (
+					<>
+						<AddDeviceDialog
+							open={addOpen}
+							onOpenChange={setAddOpen}
+							roomCode={user.id}
+						/>
+						<ScanQrDialog
+							open={scanOpen}
+							onOpenChange={setScanOpen}
+							onJoin={() => {}}
+						/>
+					</>
+				)}
 				<section>
 					<div className="mb-3 flex items-center justify-between px-1">
 						<h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
 							Arquivos da sala
 						</h3>
 						<span className="text-[11px] text-muted-foreground">
-							{history.length} arquivos
+							{files?.length} arquivos
 						</span>
 					</div>
 
-					<div className="space-y-2">
-						{history.map((it) => {
-							const Icon = fileIcon("doc");
-							const isOut = it.dir === "out";
-							return (
-								<Card
-									key={it.id}
-									className={cn(
-										"glass relative flex items-center gap-3 p-3 transition-smooth hover:border-primary/30 lg:p-4",
-										it.isNew && "border-primary/40 shadow-glow",
-									)}
-								>
-									<div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-secondary lg:h-12 lg:w-12">
-										<Icon className="h-5 w-5 text-foreground" />
-										<div
-											className={cn(
-												"absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full",
-												isOut ? "bg-primary" : "bg-accent",
-											)}
-										>
-											{isOut ? (
-												<ArrowUpRight className="h-3 w-3 text-primary-foreground" />
-											) : (
-												<ArrowDownLeft className="h-3 w-3 text-accent-foreground" />
-											)}
-										</div>
-									</div>
-									<div className="min-w-0 flex-1">
-										<div className="flex items-center gap-2">
-											<p className="truncate text-sm font-semibold lg:text-base">
-												{it.name}
-											</p>
-											{it.isNew && (
-												<span className="shrink-0 rounded-full bg-primary/20 px-2 py-0.5 text-[10px] font-bold uppercase text-primary">
-													Novo
-												</span>
-											)}
-										</div>
-										<p className="truncate text-xs text-muted-foreground">
-											{isOut ? "Você enviou" : `De ${it.who}`} · {it.size}
-										</p>
-									</div>
-									<span className="shrink-0 text-[11px] text-muted-foreground lg:text-xs">
-										{it.time}
-									</span>
-								</Card>
-							);
-						})}
-					</div>
+					<FileList />
 				</section>
 			</div>
 		</div>
