@@ -27,3 +27,31 @@ export const formatDistanceFromNow = (date: Date): string => {
 		? "agora"
 		: formatDistance(date, new Date(), { locale: ptBR });
 };
+
+export const extractAndFormatFileNameByPath = (path: string): string => {
+	const rawFileName = path.split(/[\\/]/).pop();
+
+	if (!rawFileName) return "unknown-file";
+
+	const lastDotIndex = rawFileName.lastIndexOf(".");
+
+	const hasExtension = lastDotIndex !== -1 && lastDotIndex !== 0;
+
+	const namePart = hasExtension
+		? rawFileName.substring(0, lastDotIndex)
+		: rawFileName;
+	const extensionPart = hasExtension ? rawFileName.substring(lastDotIndex) : "";
+
+	const formattedName = namePart
+		.normalize("NFD")
+		.replace(/[\u0300-\u036f]/g, "")
+		.replace(/[^a-zA-Z0-9\s-]/g, "")
+		.trim()
+		.replaceAll(/\s+/g, "-")
+		.replaceAll(/-+/g, "-")
+		.toLowerCase();
+
+	const finalName = formattedName || "unknown-file";
+
+	return `${finalName}${extensionPart.toLowerCase()}`;
+};

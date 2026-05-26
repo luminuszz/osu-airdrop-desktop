@@ -1,3 +1,4 @@
+import { c, readFile } from "@tauri-apps/plugin-fs";
 import {
 	Laptop,
 	Monitor,
@@ -9,7 +10,7 @@ import {
 	Users,
 	Zap,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import AddDeviceDialog from "@/components/AddDeviceDialog";
 import { FileList } from "@/components/FileList";
 import ScanQrDialog from "@/components/ScanQrDialog";
@@ -39,6 +40,8 @@ const deviceIcon = (k: Device["kind"]) =>
 export function Home() {
 	const { logout } = useAuth();
 
+	const [filesToUpload, setFilesToUpload] = useState<File[]>([]);
+
 	const [addOpen, setAddOpen] = useState(false);
 	const [scanOpen, setScanOpen] = useState(false);
 
@@ -48,19 +51,23 @@ export function Home() {
 
 	const { data: user } = useFetchUser();
 
+	const onFileDrop = useCallback((files: File[]) => {
+		setFilesToUpload(files);
+	}, []);
+
 	useEffect(() => {
 		let destroy: () => void;
 
-		listenDragAndDrop(({ payload }) => {
-			if (payload.type === "drop") {
-				console.log(payload);
-			}
-		}).then((callback) => (destroy = callback));
+		listenDragAndDrop(onFileDrop).then((callback) => (destroy = callback));
 
 		return () => {
 			if (destroy) destroy();
 		};
-	}, []);
+	}, [onFileDrop]);
+
+	console.log({
+		filesToUpload,
+	});
 
 	return (
 		<div className="relative mx-auto min-h-screen w-full max-w-md px-5 pb-10 pt-6 lg:max-w-7xl lg:px-10 lg:pt-10">

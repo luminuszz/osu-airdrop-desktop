@@ -1,15 +1,18 @@
 {
-	"$schema": "../gen/schemas/desktop-schema.json",
-	"identifier": "default",
-	"description": "Capability for the main window",
-	"windows": ["main"],
-	"permissions": [
-		"core:default",
-		"opener:default",
-		"os:default",
-		"os:allow-hostname",
-		"os:allow-os-type",
-		"os:allow-platform",
-		"core:window:allow-start-dragging"
-	]
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Capability for the main window",
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "core:default",
+    "opener:default",
+    "os:default",
+    "os:allow-hostname",
+    "os:allow-os-type",
+    "os:allow-platform",
+    "core:window:allow-start-dragging",
+    "fs:default"
+  ]
 }
