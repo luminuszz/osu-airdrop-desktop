@@ -9,8 +9,7 @@ import {
 	Users,
 	Zap,
 } from "lucide-react";
-import { useState } from "react";
-import Dropzone, { useDropzone } from "react-dropzone";
+import { useEffect, useState } from "react";
 import AddDeviceDialog from "@/components/AddDeviceDialog";
 import { FileList } from "@/components/FileList";
 import ScanQrDialog from "@/components/ScanQrDialog";
@@ -19,6 +18,7 @@ import { useFetchDevices } from "@/hooks/queries/use-fetch-devices";
 import { useFetchFiles } from "@/hooks/queries/use-fetch-files";
 import { useFetchUser } from "@/hooks/queries/use-fetch-user";
 import { useAuth } from "@/hooks/use-auth";
+import { listenDragAndDrop } from "@/lib/tauri";
 
 type Device = {
 	id: string;
@@ -48,28 +48,19 @@ export function Home() {
 
 	const { data: user } = useFetchUser();
 
-	async function startUpload(acceptedFiles: File[]) {
-		console.log(acceptedFiles);
-	}
+	useEffect(() => {
+		let destroy: () => void;
 
-	const { getRootProps, getInputProps, open, isDragActive } = useDropzone({
-		noKeyboard: true,
-		noClick: true,
-		multiple: false,
-		onDrop: startUpload,
-		onError: (e) => {
-			console.log(e);
-		},
-		onDropRejected: (e) => {
-			console.log(e);
-		},
-		onDropAccepted: (e) => {
-			console.log({ acceped: true, e });
-		},
-		onDragEnter: (e) => {
-			console.log({ e, enter: true });
-		},
-	});
+		listenDragAndDrop(({ payload }) => {
+			if (payload.type === "drop") {
+				console.log(payload);
+			}
+		}).then((callback) => (destroy = callback));
+
+		return () => {
+			if (destroy) destroy();
+		};
+	}, []);
 
 	return (
 		<div className="relative mx-auto min-h-screen w-full max-w-md px-5 pb-10 pt-6 lg:max-w-7xl lg:px-10 lg:pt-10">
@@ -134,10 +125,9 @@ export function Home() {
 									<h2 className="text-base font-bold lg:text-xl">
 										Sala AirDrop
 									</h2>
+
 									<p className="text-xs text-muted-foreground lg:text-sm">
-										{isDragActive
-											? "Enviando arquivo..."
-											: "Envie um arquivo e todos da sala recebem"}
+										"Envie um arquivo e todos da sala recebem"
 									</p>
 								</div>
 								<button
@@ -153,10 +143,7 @@ export function Home() {
 								</button>
 							</div>
 
-							<div
-								className="relative mx-auto mb-5 flex h-44 w-44 items-center justify-center lg:mb-8 lg:h-72 lg:w-72"
-								{...getRootProps()}
-							>
+							<div className="relative mx-auto mb-5 flex h-44 w-44 items-center justify-center lg:mb-8 lg:h-72 lg:w-72">
 								<span className="absolute h-full w-full  rounded-full bg-primary/10" />
 								<span className="absolute h-2/3 w-2/3  rounded-full bg-primary/15 " />
 								<span className="absolute h-1/3 w-1/3 rounded-full bg-primary/20" />
@@ -185,11 +172,9 @@ export function Home() {
 									);
 								})}
 							</div>
-							<input {...getInputProps()} />
 
 							<div className="grid grid-cols-[1fr_auto_auto] gap-2 lg:gap-3">
 								<button
-									onClick={open}
 									type="button"
 									className="flex h-12 items-center justify-center gap-2 rounded-xl bg-gradient-primary text-sm font-semibold text-primary-foreground shadow-glow transition-smooth hover:opacity-90 lg:h-14 lg:text-base"
 								>
