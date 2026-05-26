@@ -1,4 +1,3 @@
-import { c, readFile } from "@tauri-apps/plugin-fs";
 import {
 	Laptop,
 	Monitor,
