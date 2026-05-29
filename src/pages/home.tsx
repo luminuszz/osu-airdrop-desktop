@@ -5,6 +5,7 @@ import { DeviceList } from "@/components/DeviceList";
 import { FileList } from "@/components/FileList";
 import ScanQrDialog from "@/components/ScanQrDialog";
 import { Card } from "@/components/ui/card";
+import { useUploadFile } from "@/hooks/mutations/use-upload-file";
 import { useFetchDevices } from "@/hooks/queries/use-fetch-devices";
 import { useFetchFiles } from "@/hooks/queries/use-fetch-files";
 import { useFetchUser } from "@/hooks/queries/use-fetch-user";
@@ -14,7 +15,7 @@ import { listenDragAndDrop } from "@/lib/tauri";
 export function Home() {
 	const { logout } = useAuth();
 
-	const [filesToUpload, setFilesToUpload] = useState<File[]>([]);
+	const { mutateAsync: uploadFile } = useUploadFile();
 
 	const [addOpen, setAddOpen] = useState(false);
 	const [scanOpen, setScanOpen] = useState(false);
@@ -25,9 +26,19 @@ export function Home() {
 
 	const { data: user } = useFetchUser();
 
-	const onFileDrop = useCallback((files: File[]) => {
-		setFilesToUpload(files);
-	}, []);
+	const onFileDrop = useCallback(
+		async (files: File[]) => {
+			const [file] = files;
+
+			await uploadFile({
+				file,
+				uploadListener: (progress) => {
+					console.log(progress);
+				},
+			});
+		},
+		[uploadFile],
+	);
 
 	useEffect(() => {
 		let destroy: () => void;
@@ -38,10 +49,6 @@ export function Home() {
 			if (destroy) destroy();
 		};
 	}, [onFileDrop]);
-
-	console.log({
-		filesToUpload,
-	});
 
 	return (
 		<div className="relative mx-auto min-h-screen w-full max-w-md px-5 pb-10 pt-6 lg:max-w-7xl lg:px-10 lg:pt-10">

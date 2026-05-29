@@ -28,9 +28,11 @@ export interface FileResponse {
 
 export type FileListResponse = FileResponse[];
 
+export const fetchFilesQueryKey = ["/files"] as const;
+
 export function useFetchFiles() {
 	return useQuery({
-		queryKey: ["/files"],
+		queryKey: fetchFilesQueryKey,
 		queryFn: async () => {
 			const { data } = await osuBackend.get<FileListResponse>("/files");
 

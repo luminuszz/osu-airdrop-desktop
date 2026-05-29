@@ -1,10 +1,5 @@
 import { useCallback, useSyncExternalStore } from "react";
-import {
-	dispatchStorageEventChanged,
-	eventName,
-	type StorageKey,
-	storage,
-} from "../lib/storage";
+import { eventName, type StorageKey, storage } from "../lib/storage";
 
 export function useStorageValue<T>(key: StorageKey, defaultValue?: T) {
 	const ac = new AbortController();
@@ -16,9 +11,8 @@ export function useStorageValue<T>(key: StorageKey, defaultValue?: T) {
 				(e) => {
 					const { detail } = e as CustomEvent<string>;
 
-					console.log({ detail });
-
 					if (detail === key) {
+						console.log("changed");
 						storageChanged();
 					}
 				},

@@ -1,8 +1,9 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios, { type AxiosProgressEvent } from "axios";
 import { osuBackend } from "@/lib/api";
 import type { MutationOptionsHelper } from "@/lib/react-query";
 import { storage } from "@/lib/storage";
+import { fetchFilesQueryKey } from "../queries/use-fetch-files";
 
 async function requestUploadUrl(filename: string, filetype: string) {
 	const { data } = await osuBackend.post<{ uploadUrl: string; fileId: string }>(
@@ -49,9 +50,14 @@ async function uploadFile({ file, uploadListener }: UploadFileParams) {
 	await confirmUploadFile(fileId, file.name);
 }
 
-function useUploadFile(options: MutationOptionsHelper<typeof uploadFile>) {
+function useUploadFile(options?: MutationOptionsHelper<typeof uploadFile>) {
+	const client = useQueryClient();
+
 	return useMutation({
 		...options,
+		onSuccess() {
+			void client.invalidateQueries({ queryKey: fetchFilesQueryKey });
+		},
 		mutationFn: uploadFile,
 		mutationKey: ["upload-file"],
 	});
