@@ -1,5 +1,7 @@
+import { dirname } from "@tauri-apps/api/path";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { readFile } from "@tauri-apps/plugin-fs";
+import { open } from "@tauri-apps/plugin-shell";
 import { extractAndFormatFileNameByPath } from "./utils";
 
 export async function listenDragAndDrop(handler: (_: File[]) => void) {
@@ -21,4 +23,22 @@ export async function listenDragAndDrop(handler: (_: File[]) => void) {
 	);
 
 	return destroy;
+}
+
+export async function openFile(filePath: string) {
+	try {
+		await open(filePath);
+	} catch (error) {
+		console.error("Erro ao tentar abrir o arquivo:", error);
+	}
+}
+
+export async function openFileFolder(savePath: string) {
+	try {
+		const folderPath = await dirname(savePath);
+
+		await open(folderPath);
+	} catch (error) {
+		console.error("Erro ao tentar abrir a pasta:", error);
+	}
 }
