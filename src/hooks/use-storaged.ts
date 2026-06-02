@@ -11,8 +11,9 @@ export function useStorageValue<T>(key: StorageKey, defaultValue?: T) {
 				(e) => {
 					const { detail } = e as CustomEvent<string>;
 
+					console.log({ detail });
+
 					if (detail === key) {
-						console.log("changed");
 						storageChanged();
 					}
 				},

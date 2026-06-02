@@ -14,7 +14,14 @@
 		"fs:default",
 		"dialog:default",
 		"shell:default",
-		"shell:allow-open",
-		"fs:allow-write-file"
+		"fs:allow-write-file",
+		{
+			"identifier": "opener:allow-open-path",
+			"allow": [
+				{
+					"path": "**"
+				}
+			]
+		}
 	]
 }
