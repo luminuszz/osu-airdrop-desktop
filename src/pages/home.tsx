@@ -10,7 +10,7 @@ import { useFetchDevices } from "@/hooks/queries/use-fetch-devices";
 import { useFetchFiles } from "@/hooks/queries/use-fetch-files";
 import { useFetchUser } from "@/hooks/queries/use-fetch-user";
 import { useAuth } from "@/hooks/use-auth";
-import { listenDragAndDrop } from "@/lib/tauri";
+import { listenDragAndDrop, type OsFile } from "@/lib/tauri";
 
 export function Home() {
 	const { logout } = useAuth();
@@ -27,11 +27,12 @@ export function Home() {
 	const { data: user } = useFetchUser();
 
 	const onFileDrop = useCallback(
-		async (files: File[]) => {
-			const [file] = files;
+		async (files: OsFile[]) => {
+			const [osFile] = files;
 
 			await uploadFile({
-				file,
+				file: osFile.file,
+				originalFilePath: osFile.osPath,
 				uploadListener: (progress) => {
 					console.log(progress);
 				},

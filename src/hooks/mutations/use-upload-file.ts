@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios, { type AxiosProgressEvent } from "axios";
 import { osuBackend } from "@/lib/api";
 import type { MutationOptionsHelper } from "@/lib/react-query";
-import { storage } from "@/lib/storage";
+import { fileStorage, storage } from "@/lib/storage";
 import { fetchFilesQueryKey } from "../queries/use-fetch-files";
 
 async function requestUploadUrl(filename: string, filetype: string) {
@@ -32,9 +32,14 @@ async function confirmUploadFile(fileId: string, filename: string) {
 type UploadFileParams = {
 	file: File;
 	uploadListener?: (payload: AxiosProgressEvent) => void;
+	originalFilePath: string;
 };
 
-async function uploadFile({ file, uploadListener }: UploadFileParams) {
+async function uploadFile({
+	file,
+	uploadListener,
+	originalFilePath,
+}: UploadFileParams) {
 	const { uploadUrl, fileId } = await requestUploadUrl(file.name, file.type);
 
 	await axios.put<{
@@ -48,6 +53,12 @@ async function uploadFile({ file, uploadListener }: UploadFileParams) {
 	});
 
 	await confirmUploadFile(fileId, file.name);
+
+	fileStorage.saveFile({
+		id: fileId,
+		originalName: file.name,
+		storagePath: originalFilePath,
+	});
 }
 
 function useUploadFile(options?: MutationOptionsHelper<typeof uploadFile>) {

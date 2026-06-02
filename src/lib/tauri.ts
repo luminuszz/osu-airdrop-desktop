@@ -4,7 +4,12 @@ import { readFile } from "@tauri-apps/plugin-fs";
 import { open } from "@tauri-apps/plugin-shell";
 import { extractAndFormatFileNameByPath } from "./utils";
 
-export async function listenDragAndDrop(handler: (_: File[]) => void) {
+export type OsFile = {
+	osPath: string;
+	file: File;
+};
+
+export async function listenDragAndDrop(handler: (_: OsFile[]) => void) {
 	const destroy = await getCurrentWebview().onDragDropEvent(
 		async ({ payload }) => {
 			if (payload.type === "drop") {
@@ -13,7 +18,10 @@ export async function listenDragAndDrop(handler: (_: File[]) => void) {
 						const fileData = await readFile(path);
 						const fileName = extractAndFormatFileNameByPath(path);
 
-						return new File([fileData], fileName);
+						return {
+							osPath: path,
+							file: new File([fileData], fileName),
+						};
 					}),
 				);
 

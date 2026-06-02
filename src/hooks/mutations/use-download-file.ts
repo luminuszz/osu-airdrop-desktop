@@ -4,6 +4,7 @@ import { writeFile } from "@tauri-apps/plugin-fs";
 import axios from "axios";
 import { osuBackend } from "@/lib/api";
 import type { MutationOptionsHelper } from "@/lib/react-query";
+import { fileStorage } from "@/lib/storage";
 import { openFileFolder } from "@/lib/tauri";
 
 export async function requestDownloadUrl(fileId: string) {
@@ -22,6 +23,13 @@ export async function downloadFileByUrl({
 	originalFilename: string;
 }) {
 	try {
+		const fileAlreadyExists = fileStorage.getFile(fileId);
+
+		if (fileAlreadyExists) {
+			await openFileFolder(fileAlreadyExists.storagePath);
+			return;
+		}
+
 		const url = await requestDownloadUrl(fileId);
 
 		const pathToSave = await save({
@@ -40,6 +48,12 @@ export async function downloadFileByUrl({
 		const fileBuffer = new Uint8Array(downloadResponse.data);
 
 		await writeFile(pathToSave, fileBuffer);
+
+		fileStorage.saveFile({
+			id: fileId,
+			originalName: originalFilename,
+			storagePath: pathToSave,
+		});
 
 		await openFileFolder(pathToSave);
 	} catch (e) {
