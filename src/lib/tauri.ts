@@ -2,6 +2,7 @@ import { dirname } from "@tauri-apps/api/path";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { readFile } from "@tauri-apps/plugin-fs";
 import { openPath } from "@tauri-apps/plugin-opener";
+import { open } from "@tauri-apps/plugin-shell";
 import { extractAndFormatFileNameByPath } from "./utils";
 
 export type OsFile = {
@@ -35,7 +36,7 @@ export async function listenDragAndDrop(handler: (_: OsFile[]) => void) {
 
 export async function openFile(filePath: string) {
 	try {
-		await openFo(filePath);
+		open(filePath);
 	} catch (error) {
 		console.error("Erro ao tentar abrir o arquivo:", error);
 	}
